@@ -1,0 +1,4 @@
+dados/arquivos_csv/dados_tuberculose_completos.csv filter=lfs diff=lfs merge=lfs -text
+dados_tuberculose_completos.csv filter=lfs diff=lfs merge=lfs -text
+/mnt/c/Users/AcerGamer/Downloads/Tuberculose/Projeto-Tuberculose/dados/arquivos_csv filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
