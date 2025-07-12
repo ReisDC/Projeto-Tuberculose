@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Análise Exploratória e Estratégia para Modelagem Preditiva</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #0056b3;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ccc;
+            margin: 20px 0;
+        }
+        strong {
+            font-weight: bold;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        ol {
+            list-style-type: decimal;
+            margin-left: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        pre {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+            color: #d44950;
+        }
+    </style>
+</head>
+<body>
+    <h2>Relatório de Análise Exploratória e Estratégia para Modelagem Preditiva em Dados de Tuberculose</h2>
+
+    <p><strong>Para:</strong> Equipe de Desenvolvimento do Projeto de IA Aplicada<br>
+    <strong>De:</strong> Gemini CLI Agent<br>
+    <strong>Data:</strong> 6 de julho de 2025<br>
+    <strong>Assunto:</strong> Resumo da Análise de Dados e Roadmap para Modelagem Preditiva</p>
+
+    <hr>
+
+    <h3>1. Introdução</h3>
+
+    <p>Este relatório tem como objetivo apresentar um resumo da análise exploratória de dados (EDA) realizada na base de dados de tuberculose, bem como propor uma estratégia e um roadmap para o desenvolvimento de um modelo preditivo. O foco é fornecer um caminho claro e alcançável para as próximas três semanas, considerando a complexidade dos dados e a necessidade de prototipagem rápida.</p>
+
+    <h3>2. Resumo da Análise Exploratória de Dados (EDA)</h3>
+
+    <p>A base de dados <code>dados_tuberculose_completos.csv</code> foi processada e transformada em <code>dados_tuberculose_transformados.csv</code>, contendo <strong>502.271 registros</strong> e <strong>85 colunas</strong> (após a remoção de colunas com 100% de valores ausentes).</p>
+
+    <ul>
+        <li><strong>Qualidade dos Dados:</strong>
+            <ul>
+                <li><strong>Valores Ausentes:</strong> Identificamos uma alta prevalência de valores ausentes em diversas colunas. Algumas colunas foram removidas por terem 100% de ausência. Outras, como <code>ID_REGIONA</code> (40.69%), <code>ID_RG_RESI</code> (41.00%), <code>DT_TRANSUS</code> (94.39%), <code>BACILOSC_O</code> (77.60%), ainda apresentam uma grande quantidade de dados faltantes. Colunas cruciais para a análise, como <code>NU_IDADE_N</code>, <code>CS_RACA</code>, <code>CS_ESCOL_N</code>, <code>RAIOX_TORA</code>, <code>FORMA</code>, <code>HIV</code>, possuem uma taxa de ausência mais baixa (abaixo de 10%), o que é favorável.</li>
+                <li><strong>Tipos de Dados:</strong> As colunas foram corretamente inferidas como numéricas (inteiros e floats) e categóricas (objetos/strings). As colunas de data foram convertidas para o formato <code>datetime</code> e a idade (<code>NU_IDADE_N</code>) foi decodificada para <code>NU_IDADE_ANOS</code> (em anos).</li>
+                <li><strong>Cardinalidade:</strong> Muitas colunas de identificação (ex: <code>ID_MUNICIP</code>, <code>DT_NOTIFIC</code>) possuem alta cardinalidade, o que é esperado e não representa um problema para a análise, mas exige atenção na modelagem.</li>
+            </ul>
+        </li>
+        <li><strong>Principais Variáveis e Insights:</strong>
+            <ul>
+                <li><strong>Demográficas:</strong>
+                    <ul>
+                        <li><code>CS_SEXO</code>: Predominantemente Masculino (aprox. 70%) vs. Feminino (aprox. 30%).</li>
+                        <li><code>CS_RACA</code>: Parda e Branca são as raças mais frequentes.</li>
+                        <li><code>NU_IDADE_ANOS</code>: Média de 40.37 anos, com uma distribuição ampla (0 a 115 anos), indicando que a tuberculose afeta diversas faixas etárias.</li>
+                    </ul>
+                </li>
+                <li><strong>Clínicas:</strong>
+                    <ul>
+                        <li><code>FORMA</code>: A forma Pulmonar é a mais comum (aprox. 85%), seguida por Extrapulmonar e Mista.</li>
+                        <li><code>TRATAMENTO</code>: A "Cura" é o desfecho mais frequente, o que é positivo, mas há casos de "Incapacidade parcial permanente" e "Óbito".</li>
+                        <li><code>HIV</code>: A maioria dos pacientes é "Não Reagente" para HIV, mas há uma parcela significativa de "Reagente" e "Não Realizado".</li>
+                    </ul>
+                </li>
+                <li><strong>Temporais:</strong>
+                    <ul>
+                        <li><code>NU_ANO</code>: A maioria dos registros é recente (2020-2024), o que é bom para a relevância dos dados.</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li><strong>Visualizações:</strong> Gráficos de distribuição para as variáveis categóricas e histogramas para as numéricas foram gerados e estão disponíveis na pasta <code>graphics/analise_especialista_output</code>. Recomenda-se a análise visual desses gráficos para obter insights adicionais.</li>
+    </ul>
+
+    <h3>3. Estratégia para Criação de Modelo Preditivo</h3>
+
+    <p>Considerando que o dataset já contém <strong>casos confirmados de tuberculose</strong> (<code>ID_AGRAVO = 'A169'</code>), o objetivo do modelo preditivo não será classificar se uma pessoa <em>tem</em> tuberculose, mas sim <strong>prever aspectos ou desfechos relacionados à doença em pacientes já diagnosticados</strong>.</p>
+
+    <ul>
+        <li><strong>Objetivo Sugerido para o Modelo (Variável Alvo):</strong><br>
+        Para as próximas semanas, sugerimos focar na previsão da <strong><code>FORMA</code> da Tuberculose (Pulmonar, Extrapulmonar, Mista)</strong>.
+            <ul>
+                <li><strong>Justificativa:</strong> É uma tarefa de <strong>classificação multiclasse</strong> com um número limitado de categorias bem definidas e com poucos valores ausentes. Isso a torna um excelente ponto de partida para construir e validar o pipeline de modelagem. A compreensão dos fatores que influenciam a forma da doença pode ter implicações clínicas.</li>
+            </ul>
+        </li>
+        <li><strong>Estratégia com Dados (Fictícios/Simplificados para Prototipagem Rápida):</strong><br>
+        Para agilizar o desenvolvimento e permitir que os alunos se concentrem na lógica do modelo, propomos uma abordagem iterativa:
+            <ol>
+                <li><strong>Subconjunto de Dados Limpo:</strong> Comecem utilizando um <strong>subconjunto do dataset <code>dados_tuberculose_transformados.csv</code></strong> que contenha apenas as colunas mais relevantes e com menor taxa de valores ausentes. Isso simula um "dataset fictício" mais limpo para prototipagem.</li>
+                <li><strong>Seleção Inicial de Features:</strong> Escolham 5 a 10 features que pareçam mais promissoras com base na análise exploratória (ex: <code>CS_SEXO</code>, <code>CS_RACA</code>, <code>NU_IDADE_ANOS</code>, <code>HIV</code>, <code>NU_ANO</code>, <code>AGRAVAIDS</code>, <code>AGRAVALCOO</code>, <code>RAIOX_TORA</code>).</li>
+                <li><strong>Tratamento Simplificado de Valores Ausentes:</strong> Para este protótipo inicial, considerem remover as linhas que ainda contêm valores ausentes nas features selecionadas, ou usem uma imputação muito simples (ex: preencher com a moda para categóricas, ou média para numéricas).</li>
+                <li><strong>Codificação de Variáveis Categóricas:</strong> Utilizem <code>OneHotEncoder</code> (da biblioteca <code>scikit-learn</code>) para transformar as variáveis categóricas selecionadas em formato numérico.</li>
+                <li><strong>Escalonamento de Variáveis Numéricas:</strong> Apliquem <code>StandardScaler</code> ou <code>MinMaxScaler</code> (da <code>scikit-learn</code>) nas variáveis numéricas (<code>NU_IDADE_ANOS</code>, <code>NU_ANO</code>, etc.) para padronizá-las.</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h3>3.1. Possibilidade Adicional: Classificação "Tem TB" vs. "Não Tem TB"</h3>
+
+    <p>Embora nosso dataset atual contenha apenas casos confirmados de tuberculose (<code>ID_AGRAVO = 'A169'</code>), a criação de um modelo que classifique se uma pessoa <em>tem ou não</em> a doença é um objetivo de alto valor. Para isso, é fundamental ter dados da classe "negativa" (pessoas saudáveis ou sem diagnóstico de TB).</p>
+
+    <ul>
+        <li><strong>Desafio:</strong> A ausência de dados de controle (pessoas "não TB") em nosso dataset atual.</li>
+        <li><strong>Solução Proposta (para Prototipagem e Aprendizado): Geração de Dados Sintéticos para a Classe Negativa.</strong>
+            <ul>
+                <li><strong>Como Fazer:</strong> Os alunos podem gerar um conjunto de dados sintéticos para representar indivíduos "saudáveis". Isso envolveria:
+                    <ol>
+                        <li><strong>Amostragem de Características Demográficas:</strong> Utilizar as distribuições de <code>CS_SEXO</code>, <code>CS_RACA</code>, <code>NU_IDADE_ANOS</code> do dataset existente (ou de estatísticas populacionais gerais, se disponíveis) para criar perfis demográficos para a classe "saudável".</li>
+                        <li><strong>Definição de Variáveis Clínicas "Saudáveis":</strong> Para as variáveis clínicas e de comorbidades (<code>HIV</code>, <code>AGRAVAIDS</code>, <code>FORMA</code>, <code>TRATAMENTO</code>, <code>BACILOSC_E</code>, <code>CULTURA_ES</code>, etc.), atribuir valores que indiquem ausência da doença ou normalidade (ex: <code>FORMA</code> = "Não Aplicável" ou uma nova categoria "Saudável", <code>HIV</code> = "Não Reagente", <code>AGRAVAIDS</code> = "Não", <code>BACILOSC_E</code> = "Negativo", etc.). É crucial garantir que essas variáveis não indiquem a presença de TB.</li>
+                        <li><strong>Combinação:</strong> Concatenar este dataset sintético de "saudáveis" com o dataset existente de "confirmados de TB".</li>
+                    </ol>
+                </li>
+                <li><strong>Variável Alvo:</strong> Uma nova coluna binária (ex: <code>HAS_TB</code>) onde 1 = "Tem TB" (para os dados reais) e 0 = "Não Tem TB" (para os dados sintéticos).</li>
+            </ul>
+        </li>
+        <li><strong>Importantes Ressalvas:</strong>
+            <ul>
+                <li><strong>Propósito de Aprendizado:</strong> É vital que os alunos compreendam que este modelo, treinado com dados sintéticos para a classe negativa, é um <strong>protótipo para fins de aprendizado, experimentação e demonstração de conceito</strong>.</li>
+                <li><strong>Não para Uso Clínico:</strong> Um modelo treinado com dados sintéticos para a classe negativa <strong>NÃO deve ser utilizado para decisões clínicas reais</strong>. Para aplicações no mundo real, seria indispensável um dataset real e validado de controles saudáveis.</li>
+                <li><strong>Complexidade Adicional:</strong> A geração de dados sintéticos realistas é um desafio em si. Para as próximas 3 semanas, a abordagem deve ser <strong>simplificada</strong> e focada em criar um contraste claro entre as classes.</li>
+            </ul>
+        </li>
+        <li><strong>Impacto no Roadmap:</strong>
+            <ul>
+                <li>Se este objetivo for priorizado, a Semana 1 precisará incluir a fase de geração de dados sintéticos.</li>
+                <li>A complexidade da análise de <code>FORMA</code> ou <code>TRATAMENTO</code> pode ser reduzida ou adiada para focar na classificação binária inicial.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>4. Possibilidades de Modelos Preditivos (para a quantidade de dados)</h3>
+
+    <p>Com mais de 500.000 registros, temos uma quantidade robusta de dados que permite a utilização de diversos modelos de Machine Learning.</p>
+
+    <ul>
+        <li><strong>Modelos Clássicos (Recomendados para Início e Baseline):</strong>
+            <ul>
+                <li><strong>Regressão Logística:</strong> Um modelo linear simples, bom para entender a relação entre as features e a variável alvo. É um excelente baseline.</li>
+                <li><strong>Árvores de Decisão:</strong> Intuitivas e fáceis de interpretar, podem revelar regras de decisão importantes.</li>
+                <li><strong>Random Forest:</strong> Um algoritmo de ensemble (combinação de várias árvores de decisão) que geralmente oferece bom desempenho e robustez, sendo menos propenso a overfitting que uma única árvore.</li>
+                <li><strong>Gradient Boosting (XGBoost, LightGBM):</strong> São algoritmos de ensemble de ponta para dados tabulares, conhecidos por sua alta performance. Podem ser explorados após um baseline com modelos mais simples.</li>
+            </ul>
+        </li>
+        <li><strong>Considerações Importantes para Modelagem:</strong>
+            <ul>
+                <li><strong>Desbalanceamento de Classes:</strong> A variável <code>FORMA</code> (Pulmonar vs. Extrapulmonar/Mista) provavelmente será desbalanceada. Será crucial aplicar técnicas como <code>SMOTE</code> (Synthetic Minority Over-sampling Technique) ou ajustar o parâmetro <code>class_weight</code> nos modelos para evitar que o modelo ignore as classes minoritárias.</li>
+                <li><strong>Interpretabilidade:</strong> Para um contexto de saúde, a interpretabilidade do modelo é valiosa. Modelos como Regressão Logística e Árvores de Decisão são mais fáceis de interpretar. Ferramentas como SHAP ou LIME podem ser usadas para interpretar modelos mais complexos.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>5. Roadmap para as Próximas 3 Semanas (Factível e Alcançável)</h3>
+
+    <p>Este roadmap é projetado para ser iterativo e focado em resultados rápidos para as primeiras semanas.</p>
+
+    <ul>
+        <li><strong>Semana 1: Preparação de Dados para Modelagem (Foco no Subconjunto)</strong>
+            <ul>
+                <li><strong>Revisão:</strong> Releiam este relatório e os logs da análise especialista para solidificar o entendimento dos dados.</li>
+                <li><strong>Definição do Alvo:</strong> Confirmem que a <code>FORMA</code> da Tuberculose será a variável alvo inicial.</li>
+                <li><strong>Seleção de Features:</strong> Escolham um subconjunto inicial de 5-10 features (ex: <code>CS_SEXO</code>, <code>CS_RACA</code>, <code>NU_IDADE_ANOS</code>, <code>HIV</code>, <code>NU_ANO</code>, <code>AGRAVAIDS</code>, <code>AGRAVALCOO</code>, <code>RAIOX_TORA</code>, <code>BACILOSC_E</code>, <code>CULTURA_ES</code>).</li>
+                <li><strong>Implementação do Pré-processamento:</strong>
+                    <ul>
+                        <li>Carreguem o <code>dados_tuberculose_transformados.csv</code>.</li>
+                        <li>Apliquem o tratamento simplificado de valores ausentes (remoção de linhas com NaNs nas features selecionadas).</li>
+                        <li>Implementem a codificação One-Hot para as features categóricas.</li>
+                        <li>Implementem o escalonamento para as features numéricas.</li>
+                    </ul>
+                </li>
+                <li><strong>Divisão de Dados:</strong> Dividam o dataset pré-processado em conjuntos de treino e teste (ex: 80% treino, 20% teste) usando <code>train_test_split</code>.</li>
+            </ul>
+        </li>
+        <li><strong>Semana 2: Construção e Avaliação do Primeiro Modelo</strong>
+            <ul>
+                <li><strong>Escolha do Modelo:</strong> Comecem com um modelo simples e robusto, como <strong>Random Forest Classifier</strong>.</li>
+                <li><strong>Treinamento:</strong> Treinem o modelo com o conjunto de dados de treino.</li>
+                <li><strong>Avaliação:</strong>
+                    <ul>
+                        <li>Calculem métricas de classificação: Acurácia, Precision, Recall, F1-Score (para cada classe e média ponderada).</li>
+                        <li>Gerem a Matriz de Confusão.</li>
+                        <li>Gerem a Curva ROC e AUC (se aplicável para multiclasse, ou para cada classe individualmente).</li>
+                    </ul>
+                </li>
+                <li><strong>Análise de Importância de Features:</strong> Extraiam e visualizem a importância das features do modelo (se o modelo suportar, como Random Forest).</li>
+                <li><strong>Documentação:</strong> Registrem os resultados, as métricas e as observações iniciais.</li>
+            </ul>
+        </li>
+        <li><strong>Semana 3: Refinamento e Iteração Inicial</strong>
+            <ul>
+                <li><strong>Experimentação de Modelo:</strong> Testem um segundo modelo, como <strong>XGBoost Classifier</strong>, e comparem os resultados com o Random Forest.</li>
+                <li><strong>Balanceamento de Classes (se necessário):</strong> Se as métricas para as classes minoritárias forem baixas, explorem técnicas básicas de balanceamento (ex: <code>SMOTE</code> no conjunto de treino).</li>
+                <li><strong>Feature Engineering Simples:</strong> Tentem criar 1-2 novas features a partir das existentes (ex: <code>idade_grupo</code> a partir de <code>NU_IDADE_ANOS</code>, ou <code>duracao_diagnostico_tratamento</code> a partir das datas).</li>
+                <li><strong>Documentação e Apresentação:</strong> Consolidem todos os resultados, gráficos e insights. Preparem uma breve apresentação dos achados e do desempenho dos modelos iniciais.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>6. Próximos Passos (Além das 3 Semanas)</h3>
+
+    <p>Após esta fase inicial, o projeto poderá avançar para:</p>
+    <ul>
+        <li>Tratamento mais sofisticado de valores ausentes (imputação por modelos).</li>
+        <li>Feature Engineering mais complexo e baseado em domínio.</li>
+        <li>Seleção de features avançada para otimizar o modelo.</li>
+        <li>Otimização de hiperparâmetros dos modelos.</li>
+        <li>Validação cruzada robusta para garantir a generalização do modelo.</li>
+        <li>Exploração de modelos mais complexos, como Redes Neurais, se os dados e o problema justificarem.</li>
+        <li>Análise de interpretabilidade aprofundada (SHAP, LIME) para entender as decisões do modelo.</li>
+    </ul>
+
+    <hr>
+
+    <p>Este roadmap deve fornecer uma base sólida para o trabalho dos alunos nas próximas semanas. Estou à disposição para quaisquer dúvidas ou para auxiliar na implementação.</p>
+</body>
+</html>
